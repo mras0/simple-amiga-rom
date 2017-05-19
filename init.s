@@ -29,10 +29,11 @@ rom_code:
         move.b  #0, ciaa+pra    ; Disable OVL (Memory from $0 onwards available)
 
         ; Make sure DMA and interrupts are disabled in the custom chips
-        move.w  #$7ff, d0
-        move.w  d0, intena+custom
-        move.w  d0, intreq+custom
-        move.w  d0, dmacon+custom
+        move.w  #$7fff, d0
+        lea     custom, a6
+        move.w  d0, intena(a6)
+        move.w  d0, intreq(a6)
+        move.w  d0, dmacon(a6)
 
         ;
         ; Clear BSS
@@ -91,14 +92,12 @@ rom_code:
 
 unhandled_exception:
         ; Put up red screen and stop
-        move.l  #custom, a0
-        move.w  #$7ff, d0
-        move.w  d0, intena(a0)
-        move.w  d0, intreq(a0)
-        move.w  d0, dmacon(a0)
-        move.w  #-1, bpl1dat(a0)
-        move.w  #$0200, bplcon0(a0)
-        move.w  #$0f00, color(a0)
+        move.w  #$7fff, intena+custom
+        move.w  #$7fff, intreq+custom
+        move.w  #$7fff, dmacon+custom
+        move.w  #$ffff, bpl1dat+custom
+        move.w  #$0200, bplcon0+custom
+        move.w  #$0f00, color+custom
         stop    #$2700
         bra.s   unhandled_exception
 
