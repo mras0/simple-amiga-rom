@@ -10,8 +10,8 @@
 // Note: The following only works because we know that the bss and data segments will end up in chip mem!
 UWORD screen[SCREENW*SCREENH/16];
 UWORD copperlist[] = {
-    BPL1PTH, 0x0000,
-    BPL1PTL, 0x0000,
+    bpl1pth, 0x0000,
+    bpl1ptl, 0x0000,
     0xffff,  0xfffe,
 };
 

@@ -43,9 +43,9 @@ typedef unsigned long  ULONG;
 #define DMAF_RASTER  0x0100
 #define DMAF_COPPER  0x0080
 
-#define BPL1PTH 0x0e0
-#define BPL1PTL 0x0e2
-#define BPLPT   HARDWARE_REGISTER(ULONG, CUSTOM_BASE+BPL1PTH)
+#define bpl1pth 0x0e0
+#define bpl1ptl 0x0e2
+#define BPLPT   HARDWARE_REGISTER(ULONG, CUSTOM_BASE+bpl1pth)
 
 #define BPLCON0 CUSTOMWW(0x100)
 #define BPLCON0_HIRES 0x8000
