@@ -4,6 +4,7 @@
         XREF __rom_data
         XREF _kmain
         XREF _level3_interrupt_handler
+        XDEF _memcpy ; GCC emits calls to memcpy, provide it here
 
         section init,code
 
@@ -89,6 +90,17 @@ rom_code:
         ; Off we go
         ;
         jmp     _kmain
+
+        ; assumes -mregparm=2
+        ; input:  a0 = destination, a1 = source, d0 = number of bytes
+        ; output: d0 = destination
+_memcpy:
+        move.l  a0, d1
+        exg     d0, d1
+        bra.s   .loop
+.copy:  move.b  (a1)+, (a0)+
+.loop:  dbf     d1, .copy
+        rts
 
 unhandled_exception:
         ; Put up red screen and stop

@@ -13,6 +13,7 @@ SECTIONS {
     .rom: {
         *(init)
         *(CODE)
+        *(.text)
         . = ALIGN(16);
         __rom_data = . ;
     } >rom
@@ -22,12 +23,15 @@ SECTIONS {
     .data: {
         __data_beg = . ;
         *(DATA)
+        *(.data)
         . = ALIGN(16);
         __data_end = . ;
     } >ram AT>rom
     .bss (NOLOAD): {
         __bss_beg = . ;
         *(BSS)
+        *(.bss)
+        *(COMMON)
         . = ALIGN(16);
         __bss_end = . ;
     } >ram
