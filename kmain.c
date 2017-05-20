@@ -4,8 +4,8 @@
 //
 // Screen definitions
 //
-#define SCREENW 640 // Must be multiple of 16
-#define SCREENH 256 // Don't increase this too much :)
+#define SCREENW 640U // Must be multiple of 16
+#define SCREENH 256U // Don't increase this too much :)
 
 // Note: The following only works because we know that the bss and data segments will end up in chip mem!
 UWORD screen[SCREENW*SCREENH/16];
@@ -19,10 +19,10 @@ void screen_init() {
     //
     // Setup a 1-bpl screen using hires mode if SCREENW>320
     //
-    const int xres    = SCREENW>320?4:8; // 8=lores
-    const int xstart  = 0x81+(320-(xres==4?SCREENW/2:SCREENW))/2;
-    const int ystart  = 0x2c+(256-SCREENH)/2; // first scanline
-    const int dfstart = xstart/2-xres;
+    const UWORD xres    = SCREENW>320?4:8; // 8=lores
+    const UWORD xstart  = 0x81+(320-(xres==4?SCREENW/2:SCREENW))/2;
+    const UWORD ystart  = 0x2c+(256-SCREENH)/2; // first scanline
+    const UWORD dfstart = xstart/2-xres;
 
     BPLCON0  = (1<<12)|(xres==4?BPLCON0_HIRES:0)|BPLCON0_COLOR; // BPU=1
     BPLCON1  = 0;
@@ -32,7 +32,7 @@ void screen_init() {
     BPL2MOD  = 0;
     BPLPT[0] = (ULONG)screen;
     DIWSTRT  = (ystart<<8)|xstart;
-    DIWSTOP  = ((ystart+SCREENH)<<8)|((xstart+(xres==4?SCREENW/2:SCREENW))&0xff);
+    DIWSTOP  = (UWORD)((ystart+SCREENH)<<8)|((xstart+(xres==4?SCREENW/2:SCREENW))&0xff);
     DDFSTRT  = dfstart;
     DDFSTOP  = dfstart+xres*(SCREENW/16-8/xres);
     // Use some coder colors
