@@ -69,6 +69,12 @@ void hexstring(ULONG num, char* buf, int num_nibbles) {
     }
 }
 
+static void delay1s(void) {
+    extern void delay100us(void);
+    int i;
+    for(i=0; i<10000; i++) delay100us();
+}
+
 volatile ULONG frame_counter = 0;
 
 void level3_interrupt_handler(void) {
@@ -81,18 +87,21 @@ void level3_interrupt_handler(void) {
 
 extern unsigned char _bss_end; // See rom.ld for memory map, but for now from _bss_end onwards is free to use
 
+static print(const char* text) {
+    static int y=0;
+    screen_put_string(0, y, text);
+    y += 10;
+}    
+
 void kmain(void) {
+    extern void maprom_enable(register uint32_t asm("d0"));
+    extern void maprom_disable(void);
+    uint32_t map_rom = 0x0FF00000;
+    uint32_t entry = 0;
+    FATFS FatFs;
+    
     // Setup screen
     screen_init();
-
-    // Print some information
-    char buf[] = "End of BSS:  $........";
-    hexstring((ULONG)&_bss_end, buf+sizeof(buf)-9, 8);
-    screen_put_string(0, 0, buf);
-
-    char buf2[] = "Free memory: $........";
-    hexstring((512<<10)-(ULONG)&_bss_end, buf2+sizeof(buf2)-9, 8);
-    screen_put_string(0, 1, buf2);
 
     // Enable DMA to show our screen
     DMACON = DMAF_SETCLR|DMAF_MASTER|DMAF_RASTER|DMAF_COPPER;
@@ -102,18 +111,53 @@ void kmain(void) {
     // and calls level3_interrupt_handler
     INTENA = INTF_SETCLR | INTF_INTEN | INTF_VERTB;
 
-    // Run main loop for ever
-    for (;;) {
-        const ULONG current_frame = frame_counter;
-        // Blink LED every 32th frame
-        if ((current_frame&31)==0) CIAAPRA ^= 2;
-
-        char text[] = "Frame $........";
-        hexstring(current_frame, text+sizeof(text)-9, 8);
-        screen_put_string(SCREENW/8-sizeof(text), SCREENH/8-1, text);
-
-        // Wait for next frame
-        while (frame_counter == current_frame)
-            ;
+    // Print status information
+    print("Searching for KICK.ROM...");
+    delay1s();
+   
+    pf_mount(&Fatfs);
+    if (pf_open("KICK.ROM") != FR_OK) {
+        print("Fatal Error: File not found!");
+        while(1);
     }
+    
+    if(Fatfs.fsize ==  256 * 1024) {
+        map_rom = map_rom + 768 * 1024;
+    } else if(Fatfs.fsize ==  512 * 1024) {
+        map_rom = map_rom + 512 * 1024;
+    } else if(Fatfs.fsize != 1024 * 1024) {
+        print("Fatal Error: ROM size is not 256KB, 512KB or 1MB!");
+        while(1);
+    }
+    
+    print("Loading ROM into high memory...");
+    delay1s();
+    
+    maprom_disable();
+    if(pf_read((void*)map_rom,  Fatfs.fsize, &bytes_read)) {
+        print("Fatal Error: Error reading ROM image!");
+        while(1);
+    }
+    if(bytes_read != Fatfs.fsize) {
+        print("Fatal Error: Incomplete read!");
+        while(1);
+    }
+    print("Copying ROM into low memory...");
+    delay1s();
+    
+    if(Fatfs.fsize ==  256 * 1024) {
+        memcpy(0xFC0000, (void*)map_rom, 256 * 1024);
+        entry = 0xFC0004;
+    } else if(Fatfs.fsize ==  512 * 1024) {
+        memcpy(0xF80000, (void*)map_rom, 512 * 1024);
+        entry = 0xF80004;
+    } else {
+        memcpy(0xF80000, (void*)(map_rom + 512 * 1024), 512 * 1024);
+        memcpy(0xE00000, (void*)map_rom, 512 * 1024);
+        entry = 0xE00004;
+    }
+    print("Done!");
+    delay1s(); delay1s(); delay1s();
+    
+    maprom_enable(entry);
 }
