@@ -70,9 +70,9 @@ void hexstring(ULONG num, char* buf, int num_nibbles) {
 }
 
 static void delay1s(void) {
-    extern void delay100us(void);
+    extern void dly_100us(void);
     int i;
-    for(i=0; i<10000; i++) delay100us();
+    for(i=0; i<10000; i++) dly_100us();
 }
 
 volatile ULONG frame_counter = 0;
