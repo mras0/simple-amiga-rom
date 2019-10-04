@@ -39,7 +39,7 @@ static inline void xmit_spi (BYTE d) { (void)xfer_spi(d); }
 static inline BYTE rcv_spi (void) { return xfer_spi(0xFF); }
 
 /* Delay 100 microseconds */
-static inline void dly_100us (void) {
+void dly_100us (void) {
 	// 85 * 10 cycles
 	short i = 85;
 	while(i--) {
