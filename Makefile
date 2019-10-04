@@ -2,7 +2,7 @@
 
 OUTDIR:=out
 ROM:=$(OUTDIR)/rom.bin
-OBJS:=$(addprefix $(OUTDIR)/,init.o kmain.o)
+OBJS:=$(addprefix $(OUTDIR)/,init.o kmain.o mmcbbp.o pff.o)
 
 ifeq ($(AS),as)
 	AS=vasm
